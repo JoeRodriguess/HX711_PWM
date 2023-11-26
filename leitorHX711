@@ -1,0 +1,92 @@
+#include <HX711.h>
+
+void calibrate();
+
+// HX711 circuit wiring
+const int LOADCELL_DOUT_PIN = 9;
+const int LOADCELL_SCK_PIN = 8;
+
+
+HX711 scale;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("HX711 Demo");
+
+  Serial.println("Initializing the scale");
+
+  // Inicializa a biblioteca com o pino de saída de dados, pino de entrada de clock e fator de ganho.
+  // A seleção do canal é feita passando o ganho apropriado:
+  // - Com um fator de ganho de 64 ou 128, o canal A é selecionado
+  // - Com um fator de ganho de 32, o canal B é selecionado
+  // Omissão do parâmetro de fator de ganho usa o padrão da biblioteca "128" (Canal A) aqui.
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  scale.set_gain(128);
+
+  calibrate();
+
+  Serial.print("read: \t\t");
+  Serial.println(scale.read());                 // imprime uma leitura bruta do ADC
+
+  Serial.print("read average: \t\t");
+  Serial.println(scale.read_average(20));        // imprime a média de 20 leituras do ADC
+
+  Serial.print("get value: \t\t");
+  Serial.println(scale.get_value(5));		// imprime a média de 5 leituras do ADC menos o peso da tara, configurado com tare()
+
+  Serial.print("get units: \t\t");
+  Serial.println(scale.get_units(5), 1);        // imprime a média de 5 leituras do ADC menos o peso da tara, dividido
+   // pelo parâmetro SCALE configurado com set_scale
+
+  Serial.println("Readings:");
+  set();
+  delay(5000);  // delay de 10s para inicializar
+}
+
+void loop() {
+  Serial.print("one reading:\t");
+  Serial.print(scale.get_units(), 1);
+  Serial.print("\t| average:\t");
+  Serial.println(scale.get_units(10), 1);
+  pwm();
+
+//  scale.power_down();			        // coloca o ADC em modo de repouso
+
+
+//  scale.power_up();
+}
+
+void calibrate() {
+  // Remove quaisquer valores de calibração e limpa a balança
+  scale.set_scale();
+  scale.tare();
+
+ // Solicita ao usuário
+  Serial.println("Adicione o peso conhecido à balança, insira o peso e pressione <Enter>");
+  int userInput = -123;
+  String inputString = "";
+  // Loop até receber uma entrada (o que alterará o valor de userInput
+  while (userInput == -123) {
+    // Lê a entrada serial:
+    while (Serial.available() > 0) {
+      int inputChar = Serial.read();
+      if (isDigit(inputChar)) {
+       // converte o byte de entrada em um char e o adiciona à string:
+        inputString += (char)inputChar;
+      }
+      // se receber uma quebra de linha, imprime a string, e então o valor da string:
+      if (inputChar == '\n') {
+        userInput = inputString.toInt();
+      }
+    }
+  }
+
+  // Agora, obtenha a leitura da balança
+  float calReading = scale.get_units(10);
+
+  Serial.print("Configurando a calibração para ");
+  Serial.println(calReading / userInput);
+
+  scale.set_scale(calReading / userInput);
+}
