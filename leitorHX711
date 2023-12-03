@@ -3,16 +3,17 @@
 void calibrate();
 
 // HX711 circuit wiring
-const int LOADCELL_DOUT_PIN = 9;
-const int LOADCELL_SCK_PIN = 8;
+const int LOADCELL_DOUT_PIN = 3;
+const int LOADCELL_SCK_PIN = 2;
 
-
+float peso_atual;
+float peso_anterior;
 HX711 scale;
 
 void setup() {
   Serial.begin(9600);
   Serial.println("HX711 Demo");
-
+  setDisplay();
   Serial.println("Initializing the scale");
 
   // Inicializa a biblioteca com o pino de saída de dados, pino de entrada de clock e fator de ganho.
@@ -40,8 +41,8 @@ void setup() {
    // pelo parâmetro SCALE configurado com set_scale
 
   Serial.println("Readings:");
-  set();
-  delay(5000);  // delay de 10s para inicializar
+  set(); // set dos pinos do motor e botôes
+  //delay(5000);  // delay de 10s para inicializar
 }
 
 void loop() {
@@ -49,7 +50,16 @@ void loop() {
   Serial.print(scale.get_units(), 1);
   Serial.print("\t| average:\t");
   Serial.println(scale.get_units(10), 1);
-  pwm();
+  peso_atual= scale.get_units();
+  peso_anterior= peso_atual;
+  delay(100);
+
+while(peso_atual>peso_anterior){
+  pwm(1); // controle do sentido
+  printDisplay();
+}
+ printDisplay();
+  pwm(0);
 
 //  scale.power_down();			        // coloca o ADC em modo de repouso
 
