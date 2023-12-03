@@ -1,11 +1,10 @@
 // SETUP DA PONTE H (PINAGEM)
 // R: TRAÇÃO
 // L: DESENROLA
-int Renable = 2;
-int Lenable = 3;
+int Renable = 9;
+int Lenable = 10;
 int Rpwm = 11;  
-int Lpwm = 12;  
-
+int Lpwm = 12; 
 // BOTÕES (PINAGEM)
 int Rbt = 4;  // TRAÇÃO
 int Lbt = 5;  // DESENROLA
@@ -41,7 +40,7 @@ void set()
   pinMode(Lbt, INPUT);
   pinMode(Sbt, INPUT);
   digitalWrite(Rbt, LOW);
-  digitalWrite(Lbt, LOW);
+  digitalWrite(Lbt, LOW); 
   digitalWrite(Sbt, LOW);
   digitalWrite(Lenable, HIGH);
   digitalWrite(Renable, HIGH);
@@ -54,11 +53,11 @@ void set()
 // flag = 2 sistema recebeu comando para desenrolar
 // flag = 3 máquina em operação (estado não diretamente acionado)
 
-void pwm() 
+void pwm(int condicao) 
 {
 
   // botão de tração pressionado
-  if(digitalRead(Rbt)){
+  if(digitalRead(Rbt || condicao==1)){
     flag = 1;
   }
 
@@ -67,7 +66,7 @@ void pwm()
     flag = 2;
   }
 
-  if(digitalRead(Sbt)){
+  if(digitalRead(Sbt) && condicao==0){
     flag = 0;
   }
 
